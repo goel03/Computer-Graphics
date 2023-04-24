@@ -1,0 +1,78 @@
+
+
+//
+//
+//
+//
+#include <iostream>
+#include <graphics.h>
+
+using namespace std;
+
+void scanlineFill(int x[], int y[], int n) {
+    int ymax = y[0], ymin = y[0];
+
+    // find minimum and maximum y values of the polygon
+    for (int i = 1; i < n; i++) {
+        ymax = max(ymax, y[i]);
+        ymin = min(ymin, y[i]);
+    }
+
+    // scanline algorithm
+    for (int i = ymin; i <= ymax; i++) {
+        // find intersections of scanline with polygon edges
+        int intersections[n], count = 0;
+
+        for (int j = 0; j < n; j++) {
+            int k = (j+1) % n;
+
+            if (y[j] <= i && y[k] > i || y[k] <= i && y[j] > i) {
+                float xint = (float)(x[j] + (i-y[j])*(x[k]-x[j])/(y[k]-y[j]));
+                /*
+                The equation of the line passing through(x[j], y[j]) and (x[k], y[k] is given by:
+                (y - y[j]) / (y[k] - y[j]) = (x - x[j]) / (x[k] - x[j])
+                rearranging to get x in terms of y:
+                x = x[j] + (y - y[j]) * (x[k] - x[j]) / (y[k] - y[j])
+                */
+               
+                intersections[count] = xint;
+                count++;
+            }
+        }
+
+        // sort intersections by x coordinate
+        for (int j = 0; j < count; j++) {
+            for (int k = j+1; k < count; k++) {
+                if (intersections[j] > intersections[k]) {
+                    int temp = intersections[j];
+                    intersections[j] = intersections[k];
+                    intersections[k] = temp;
+                }
+            }
+        }
+
+        // fill pixels between pairs of intersections
+        for (int j = 0; j < count; j += 2) {
+            for (int x = intersections[j]; x <= intersections[j+1]; x++) {
+                putpixel(x, i, WHITE);
+            }
+        }
+    }
+}
+
+int main() {
+    int gd = DETECT, gm;
+    initgraph(&gd, &gm, "");
+
+    int x[] = { 200, 100, 300 };
+    int y[] = { 200, 700, 700 };
+
+    scanlineFill(x, y, 3);
+
+    getch();
+    closegraph();
+    return 0;
+}
+
+//
+//
