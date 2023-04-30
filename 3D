@@ -1,0 +1,249 @@
+//7. Write a program to apply various 3D transformations on a 3D object and then apply parallel
+// and perspective projection on it.
+
+#include<iostream>
+#include<graphics.h>
+#include<math.h>
+
+using namespace std ;
+
+class Transformation3D{
+	private:
+		int points ;
+		int** obj ;
+		double** tr_obj ;
+	public:
+		Transformation3D() ;
+		~Transformation3D() ;
+		
+		void input() ;
+		void multiplication(int** o, double** m) ;
+		void translation3d(int tx, int ty) ;
+		void scaling3d(int sx, int sy) ;
+		void rotation3d(double deg) ;
+		void shearing3d(int shx, int shy) ;
+		void reflection_abx() ;
+		void reflection_aby() ;
+		void print() ;
+};
+
+Transformation3D :: Transformation3D() {
+	points = 0 ;
+	obj = 0 ;
+	tr_obj = 0 ;
+}
+
+Transformation3D :: ~Transformation3D() {
+	delete[] obj ;
+	delete[] tr_obj ;
+}
+
+void Transformation3D :: input() {
+	obj = new int*[8] ;
+	tr_obj = new double*[8] ;
+	
+	for(int i=0 ; i<2 ; i++) {
+		obj[i] = new int[2] ;
+		tr_obj[i] = new double[2] ;
+	}
+		
+	for(int i=0 ; i<2 ; i++) {
+		cout << "\n\t\t\t\t\tEnter coordinates of front face of cuboid\n" ;
+		cout << "\nEnter x-coordinate:  " ;
+		cin >> obj[i][0] ;
+		cout << "Enter y-coordinate:  " ;
+		cin >> obj[i][1] ;
+	}
+	
+	return ;
+}
+
+void Transformation3D :: multiplication(int ** o, double** m) {
+	for (int i = 0; i < points; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            double sum = 0;
+            for (int k = 0; k < 4; ++k) {
+                sum += o[i][k] * m[k][j];
+            }
+            tr_obj[i][j] = sum;
+        }
+    }
+    
+    return ;
+}
+
+void Transformation3D :: print() {
+	int gd = DETECT, gm ;
+	char pathtodriver[] = "";
+	initgraph(&gd, &gm, pathtodriver) ;
+	
+	cout << "\n\nPoints before transformation : " ;
+	for(int i=0 ; i<points ; i++) {
+		cout << "(" << obj[i][0] + getmaxx()/2 << ", " << obj[i][1] + getmaxy()/2 << ")" ;
+	}
+	
+	cout << "\n\nPoints after transformation : " ;
+	for(int i=0 ; i<points ; i++) {
+		cout << "(" << tr_obj[i][0] + getmaxx()/2 << ", " << tr_obj[i][1] + getmaxy()/2 << ")" ;
+	}
+	
+	for(int i=0 ; i<points-1 ; i++)
+		line(obj[i][0] + getmaxx()/2 , obj[i][1] + getmaxy()/2, obj[i+1][0] + getmaxx()/2, obj[i+1][1] + getmaxy()/2) ;
+
+	line(obj[0][0] + getmaxx()/2, obj[0][1] + getmaxy()/2, obj[points-1][0] + getmaxx()/2, obj[points-1][1] + getmaxy()/2) ;
+	
+	getch() ;
+	cleardevice() ;
+			
+	for(int i=0 ; i<points-1 ; i++)
+		line(tr_obj[i][0] + getmaxx()/2, tr_obj[i][1] + getmaxy()/2, tr_obj[i+1][0] + getmaxx()/2, tr_obj[i+1][1] + getmaxy()/2) ;
+
+	line(tr_obj[0][0] + getmaxx()/2, tr_obj[0][1] + getmaxy()/2, tr_obj[points-1][0] + getmaxx()/2, tr_obj[points-1][1] + getmaxy()/2) ;
+	
+	getch() ;
+	closegraph() ;
+	
+	return ;
+}
+
+void Transformation3D :: translation3d(int tx, int ty) {	
+	double** mat ;
+	
+	mat = new double*[3] ;
+	for(int i=0 ; i<3 ; i++)
+		mat[i] = new double[3] ;
+			
+	mat[0][0] = 1 ;
+	mat[0][1] = mat[0][2] = 0 ;
+	mat[1][0] = mat[1][2] = 0 ;
+	mat[1][1] = 1 ;
+	mat[2][0] = tx ;
+	mat[2][1] = ty ;
+	mat[2][2] = 1 ;
+	
+	multiplication(obj, mat) ;
+	print() ;
+	
+	return ;	
+}
+
+void Transformation3D :: scaling3d(int sx=1, int sy=1) {
+	double** mat ;
+	
+	mat = new double*[3] ;
+	for(int i=0 ; i<3 ; i++)
+		mat[i] = new double[3] ;
+	
+	mat[0][0] = sx ;
+	mat[0][1] = mat[0][2] = 0 ;
+	mat[1][0] = mat[1][2] = 0 ;
+	mat[1][1] = sy ;
+	mat[2][0] = mat[2][1] = 0 ;
+	mat[2][2] = 1 ;
+		
+	multiplication(obj, mat) ;
+	print() ;
+	
+	return ;
+}
+
+void Transformation3D :: rotation3d(double deg) {
+	double** mat ;
+	
+	mat = new double*[3] ;
+	for(int i=0 ; i<3 ; i++)
+		mat[i] = new double[3] ;
+		
+	double rad = (deg * 3.14)/180 ;
+	
+	mat[0][0] = cos(rad) ;
+	mat[0][1] = sin(rad) ;
+	mat[0][2] = 0 ;
+	mat[1][0] = -1*sin(rad) ;
+	mat[1][1] = cos(rad) ;
+	mat[1][2] = 0 ;
+	mat[2][0] = mat[2][1] = 0 ;
+	mat[2][2] = 1 ;
+		
+	multiplication(obj, mat) ;
+	print() ;
+	
+	return ;
+}
+
+void Transformation3D :: shearing3d(int shx = 1, int shy = 1) {
+	double** mat ;
+	
+	mat = new double*[3] ;
+	for(int i=0 ; i<3 ; i++)
+		mat[i] = new double[3] ;
+	
+	mat[0][0] = 1 ;
+	mat[0][1] = shy ;
+	mat[0][2] = 0 ;
+	mat[1][0] = shx ;
+	mat[1][1] = 1 ;
+	mat[1][2] = 0 ;
+	mat[2][0] = mat[2][1] = 0 ;
+	mat[2][2] = 1 ;
+		
+	multiplication(obj, mat) ;
+	print() ;
+	
+	return ;
+}
+
+void Transformation3D :: reflection_abx() {
+	double** mat ;
+	
+	mat = new double*[3] ;
+	for(int i=0 ; i<3 ; i++)
+		mat[i] = new double[3] ;
+	
+	mat[0][0] = 1 ;
+	mat[0][1] = 0 ;
+	mat[0][2] = 0 ;
+	mat[1][0] = 0 ;
+	mat[1][1] = -1 ;
+	mat[1][2] = 0 ;
+	mat[2][0] = mat[2][1] = 0 ;
+	mat[2][2] = 1 ;
+		
+	multiplication(obj, mat) ;
+	print() ;
+	
+	return ;
+}
+
+void Transformation3D :: reflection_aby() {
+	double** mat ;
+	
+	mat = new double*[3] ;
+	for(int i=0 ; i<3 ; i++)
+		mat[i] = new double[3] ;
+	
+	mat[0][0] = -1 ;
+	mat[0][1] = 0 ;
+	mat[0][2] = 0 ;
+	mat[1][0] = 0 ;
+	mat[1][1] = 1 ;
+	mat[1][2] = 0 ;
+	mat[2][0] = mat[2][1] = 0 ;
+	mat[2][2] = 1 ;
+		
+	multiplication(obj, mat) ;
+	print() ;
+	
+	return ;
+}
+
+int main() {	
+	char option ;
+	int choice, tx, ty;
+	double d ;
+
+	Transformation3D object ;
+	object.input() ;
+
+	returnÂ 0Â ;
+}
